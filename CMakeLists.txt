@@ -5,6 +5,34 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Collect sources and public headers from subdirectories.
+set(SOURCE_FILES "")
+set(PUBLIC_HEADER "")
+
+macro(add_sources)
+    file(RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    foreach(_src ${ARGN})
+        if(_relPath)
+            list(APPEND SOURCE_FILES "${_relPath}/${_src}")
+        else()
+            list(APPEND SOURCE_FILES "${_src}")
+        endif()
+    endforeach()
+    set(SOURCE_FILES ${SOURCE_FILES} PARENT_SCOPE)
+endmacro()
+
+macro(add_header)
+    file(RELATIVE_PATH _relPath "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+    foreach(_src ${ARGN})
+        if(_relPath)
+            list(APPEND PUBLIC_HEADER "${_relPath}/${_src}")
+        else()
+            list(APPEND PUBLIC_HEADER "${_src}")
+        endif()
+    endforeach()
+    set(PUBLIC_HEADER ${PUBLIC_HEADER} PARENT_SCOPE)
+endmacro()
+
 option(OPENFE_USE_LOCAL_BPDPVS "Build bpdpvs from local ../bp-dpvs checkout" ON)
 option(OPENFE_BUILD_MAIN "Build openfe test executable" ON)
 
@@ -24,7 +52,10 @@ else()
     find_package(bpdpvs CONFIG REQUIRED)
 endif()
 
-add_library(openfe src/openfe.cpp)
+add_subdirectory(include)
+add_subdirectory(src)
+
+add_library(openfe ${SOURCE_FILES})
 add_library(OPENFE::openfe ALIAS openfe)
 
 target_include_directories(openfe
