@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(openfe VERSION 0.1.0 LANGUAGES C CXX)
 
+include(FetchContent)
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,19 +37,31 @@ endmacro()
 
 option(OPENFE_USE_LOCAL_BPDPVS "Build bpdpvs from local ../bp-dpvs checkout" ON)
 option(OPENFE_BUILD_MAIN "Build openfe test executable" ON)
+set(OPENFE_BPDPVS_GIT_REPOSITORY "https://github.com/acarreo/bp-dpvs.git" CACHE STRING "bp-dpvs git repository used when local checkout is unavailable")
+set(OPENFE_BPDPVS_GIT_TAG "main" CACHE STRING "bp-dpvs git tag/branch/commit used when fetching" FORCE)
 
 if(OPENFE_USE_LOCAL_BPDPVS)
     set(_BPDPVS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../bp-dpvs")
-    if(NOT EXISTS "${_BPDPVS_SOURCE_DIR}/CMakeLists.txt")
-        message(FATAL_ERROR "Local bp-dpvs not found at ${_BPDPVS_SOURCE_DIR}")
+    if(EXISTS "${_BPDPVS_SOURCE_DIR}/CMakeLists.txt")
+        # Build bp-dpvs locally as a dependency of openfe.
+        set(TESTS OFF CACHE BOOL "" FORCE)
+        set(BENCH OFF CACHE BOOL "" FORCE)
+        set(BUILD_MAIN OFF CACHE BOOL "" FORCE)
+        set(BPDPVS_INSTALL OFF CACHE BOOL "" FORCE)
+        add_subdirectory("${_BPDPVS_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/_deps/bp-dpvs-build")
+    else()
+        message(STATUS "Local bp-dpvs not found at ${_BPDPVS_SOURCE_DIR}; fetching from ${OPENFE_BPDPVS_GIT_REPOSITORY} (${OPENFE_BPDPVS_GIT_TAG})")
+        set(TESTS OFF CACHE BOOL "" FORCE)
+        set(BENCH OFF CACHE BOOL "" FORCE)
+        set(BUILD_MAIN OFF CACHE BOOL "" FORCE)
+        set(BPDPVS_INSTALL OFF CACHE BOOL "" FORCE)
+        FetchContent_Declare(
+            bpdpvs
+            GIT_REPOSITORY ${OPENFE_BPDPVS_GIT_REPOSITORY}
+            GIT_TAG ${OPENFE_BPDPVS_GIT_TAG}
+        )
+        FetchContent_MakeAvailable(bpdpvs)
     endif()
-
-    # Build bp-dpvs locally as a dependency of openfe.
-    set(TESTS OFF CACHE BOOL "" FORCE)
-    set(BENCH OFF CACHE BOOL "" FORCE)
-    set(BUILD_MAIN OFF CACHE BOOL "" FORCE)
-    set(BPDPVS_INSTALL OFF CACHE BOOL "" FORCE)
-    add_subdirectory("${_BPDPVS_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/_deps/bp-dpvs-build")
 else()
     find_package(bpdpvs CONFIG REQUIRED)
 endif()
