@@ -1,54 +1,42 @@
-#ifndef OPENFE_ZCONTEXTKSW08_H
-#define OPENFE_ZCONTEXTKSW08_H
+#ifndef OPENFE_CONTEXTKSW08_H
+#define OPENFE_CONTEXTKSW08_H
 
-#include "openfe/zcontext.h"
+#include "openfe/context.h"
 #include "bpdpvs.h"
 #include <vector>
 
 namespace openfe {
 
 // clé publique : Q + H1/H2 par coordonnée
-class KSW08MPK {
+class KSW08MPK : public OpenFEMPK {
 public:
     G1_VECTOR Q;
     std::vector<G1_VECTOR> H1;
     std::vector<G1_VECTOR> H2;
-
-    void serialize(ByteString &result) const;
-    void deserialize(const ByteString &input);
 };
 
 // secret maître : g_q + h1/h2 par coordonnée
-class KSW08MSK {
+class KSW08MSK : public OpenFEMSK {
 public:
     G2_VECTOR g_q;
     std::vector<G2_VECTOR> h1;
     std::vector<G2_VECTOR> h2;
-
-    void serialize(ByteString &result) const;
-    void deserialize(const ByteString &input);
 };
 
 // chiffré d'un vecteur x
-class KSW08Ciphertext {
+class KSW08Ciphertext : public OpenFECiphertext {
 public:
     G1_VECTOR C0;
     std::vector<G1_VECTOR> C1;
     std::vector<G1_VECTOR> C2;
-
-    void serialize(ByteString &result) const;
-    void deserialize(const ByteString &input);
 };
 
 // clé de déchiffrement pour un vecteur y
-class KSW08SecretKey {
+class KSW08SecretKey : public OpenFESecretKey {
 public:
     G2_VECTOR K;
     std::vector<G2_VECTOR> K1;
     std::vector<G2_VECTOR> K2;
-
-    void serialize(ByteString &result) const;
-    void deserialize(const ByteString &input);
 };
 
 // schéma à prédicat produit scalaire KSW08 sur DPVS
@@ -71,10 +59,10 @@ public:
 
     ~OpenFEContextKSW08() override = default;
 
-    void setup(KSW08MPK &mpk, KSW08MSK &msk); // génère mpk/msk
-    void encrypt(const KSW08MPK &mpk, const std::vector<ZP> &x, KSW08Ciphertext &ct);
-    void keygen(const KSW08MSK &msk, const std::vector<ZP> &y, KSW08SecretKey &sk);
-    bool decrypt(const KSW08SecretKey &sk, const KSW08Ciphertext &ct); // vrai si <x,y> = 0
+    void setup(OpenFEMPK &mpk, OpenFEMSK &msk) override; // génère mpk/msk
+    void encrypt(const OpenFEMPK &mpk, const std::vector<ZP> &x, OpenFECiphertext &ct) override;
+    void keygen(const OpenFEMSK &msk, const std::vector<ZP> &y, OpenFESecretKey &sk) override;
+    bool decrypt(const OpenFESecretKey &sk, const OpenFECiphertext &ct) override; // vrai si <x,y> = 0
 };
 
 }
