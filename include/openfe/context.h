@@ -34,7 +34,7 @@ public:
     virtual void setup(OpenFEMPK &mpk, OpenFEMSK &msk) = 0;
     virtual void encrypt(const OpenFEMPK &mpk, const std::vector<ZP> &x, OpenFECiphertext &ct) = 0;
     virtual void keygen(const OpenFEMSK &msk, const std::vector<ZP> &y, OpenFESecretKey &sk) = 0;
-    virtual bool decrypt(const OpenFESecretKey &sk, const OpenFECiphertext &ct) = 0;
+    virtual long decrypt(const OpenFEMPK &mpk, const OpenFESecretKey &sk, const OpenFECiphertext &ct) = 0;
 };
 
 }
