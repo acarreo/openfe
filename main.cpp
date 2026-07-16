@@ -7,36 +7,32 @@ using namespace openfe;
 
 int main() {
     if (core_init() != RLC_OK) return 1;
-    if (pc_param_set_any() != RLC_OK) {
+    if (ep_param_set(B12_P381) != RLC_OK) {
         core_clean();
         return 1;
     }
 
     assert(self_check() == 0);
 
-    auto scheme = OpenFE_createContext(OpenFE_SCHEME_KSW08, 4);
-    KSW08MPK mpk;
-    KSW08MSK msk;
+    auto scheme = OpenFE_createContext(OpenFE_SCHEME_ABDP15, 4);
+    ABDP15MPK mpk;
+    ABDP15MSK msk;
     scheme->setup(mpk, msk);
 
-    ZP zero(0u), one(1u), two(2u), three(3u), four(4u);
-    ZP neg_one = zero - one;
+    ZP z0(0u), z1(1u), z2(2u), z3(3u), z4(4u);
+    std::vector<ZP> x = {z1, z2, z3, z4};
+    std::vector<ZP> y = {z2, z0 - z1, z0, z0};
+    std::vector<ZP> y2 = {z1, z1, z1, z1};
 
-    std::vector<ZP> x = {one, two, three, four};
-    std::vector<ZP> y = {two, neg_one, zero, zero};
-    std::vector<ZP> y2 = {one, one, one, one};
-
-    KSW08Ciphertext ct;
+    ABDP15Ciphertext ct;
     scheme->encrypt(mpk, x, ct);
 
-    KSW08SecretKey sk, sk2;
+    ABDP15SecretKey sk, sk2;
     scheme->keygen(msk, y, sk);
     scheme->keygen(msk, y2, sk2);
 
-    assert(scheme->decrypt(sk, ct) == true);
-    assert(scheme->decrypt(sk2, ct) == false);
-
-
+    assert(scheme->decrypt(mpk, sk, ct) == 0);
+    assert(scheme->decrypt(mpk, sk2, ct) == 10);
 
     core_clean();
     return 0;
