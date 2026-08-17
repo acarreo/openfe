@@ -1,0 +1,13 @@
+#include "openfe.h"
+#include <stdexcept>
+
+namespace openfe {
+
+std::unique_ptr<OpenFEContext> OpenFE_createContext(OpenFESchemeID id, size_t vector_len) {
+    if (id == OpenFE_SCHEME_ABDP15) return std::make_unique<OpenFEContextABDP15>(vector_len);
+    if (id == OpenFE_SCHEME_ALS16) return std::make_unique<OpenFEContextALS16>(vector_len);
+    if (id == OpenFE_SCHEME_KLMMRW16) return std::make_unique<OpenFEContextKLMMRW16>(vector_len);
+    throw std::invalid_argument("Unknown OpenFESchemeID");
+}
+
+}
