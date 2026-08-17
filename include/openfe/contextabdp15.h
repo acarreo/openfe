@@ -45,8 +45,8 @@ public:
     ~OpenFEContextABDP15() override = default;
 
     void setup(OpenFEMPK &mpk, OpenFEMSK &msk) override;
-    void encrypt(const OpenFEMPK &mpk, const std::vector<ZP> &x, OpenFECiphertext &ct) override;
-    void keygen(const OpenFEMSK &msk, const std::vector<ZP> &y, OpenFESecretKey &sk) override;
+    void encrypt(const OpenFEMPK &mpk, const std::vector<long> &x, OpenFECiphertext &ct) override;
+    void keygen(const OpenFEMSK &msk, const std::vector<long> &y, OpenFESecretKey &sk) override;
     long decrypt(const OpenFEMPK &mpk, const OpenFESecretKey &sk, const OpenFECiphertext &ct) override;
 };
 

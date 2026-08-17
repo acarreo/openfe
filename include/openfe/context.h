@@ -1,7 +1,6 @@
 #ifndef OPENFE_CONTEXT_H
 #define OPENFE_CONTEXT_H
 
-#include "bpdpvs.h"
 #include <vector>
 
 namespace openfe {
@@ -32,8 +31,8 @@ public:
     virtual ~OpenFEContext() = default;
 
     virtual void setup(OpenFEMPK &mpk, OpenFEMSK &msk) = 0;
-    virtual void encrypt(const OpenFEMPK &mpk, const std::vector<ZP> &x, OpenFECiphertext &ct) = 0;
-    virtual void keygen(const OpenFEMSK &msk, const std::vector<ZP> &y, OpenFESecretKey &sk) = 0;
+    virtual void encrypt(const OpenFEMPK &mpk, const std::vector<long> &x, OpenFECiphertext &ct) = 0;
+    virtual void keygen(const OpenFEMSK &msk, const std::vector<long> &y, OpenFESecretKey &sk) = 0;
     virtual long decrypt(const OpenFEMPK &mpk, const OpenFESecretKey &sk, const OpenFECiphertext &ct) = 0;
 };
 
