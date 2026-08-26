@@ -45,7 +45,8 @@ long discreteLogBSGS(const G1 &g, const G1 &h, long bound) {
     }
 
         ZP zm(static_cast<uint32_t>(m));
-        G1 step = g * (ZP(0u) - zm);
+        G1 zero_g1;
+        G1 step = zero_g1 - (g * zm);
         G1 giant = h + g * ZP(static_cast<uint32_t>(bound));
 
     for (long i = 0; i < m; ++i) {
