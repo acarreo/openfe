@@ -99,6 +99,7 @@ target_include_directories(openfe
 
 target_link_libraries(openfe PUBLIC BPDPVS::bpdpvs)
 
+option(OPENFE_BUILD_BENCH "Build benchmarks" ON)
 if(OPENFE_BUILD_MAIN)
     add_executable(openfe_main main.cpp)
     target_link_libraries(openfe_main PRIVATE OPENFE::openfe)
@@ -106,3 +107,7 @@ endif()
 
 enable_testing()
 add_subdirectory(tests)
+
+if(OPENFE_BUILD_BENCH)
+    add_subdirectory(bench)
+endif()
