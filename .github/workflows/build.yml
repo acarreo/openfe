@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        configuration: [downloaded-gtest, system-gtest, no-tests, installed-bpdpvs]
+        configuration: [downloaded-gtest, system-gtest, no-tests, installed-bpdpvs, benchmarks]
     steps:
       - uses: actions/checkout@v4
       - name: Install build dependencies
@@ -51,6 +51,9 @@ jobs:
               cmake -S . -B build -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/openfe-deps"
               grep -Fq "bpdpvs_DIR:PATH=$RUNNER_TEMP/openfe-deps/" build/CMakeCache.txt
               test ! -d build/_deps/bpdpvs-src
+              ;;
+            benchmarks)
+              cmake -S . -B build -DOPENFE_BUILD_BENCH=ON
               ;;
           esac
       - name: Build
