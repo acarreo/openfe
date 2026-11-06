@@ -40,7 +40,7 @@ jobs:
               ;;
             system-gtest)
               gtest_config="$(dpkg -L libgtest-dev | grep '/GTestConfig.cmake$')"
-              cmake -S . -B build -DGTest_DIR="$(dirname "$gtest_config")"
+              cmake -S . -B build -DGTest_DIR:PATH="$(dirname "$gtest_config")"
               grep -q '^GTest_DIR:PATH=/usr/' build/CMakeCache.txt
               ;;
             no-tests)
