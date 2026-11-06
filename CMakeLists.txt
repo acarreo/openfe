@@ -50,40 +50,33 @@ function(openfe_patch_bpdpvs_cmake source_dir)
     endif()
 endfunction()
 
-option(OPENFE_USE_LOCAL_BPDPVS "Build bpdpvs from local ../bp-dpvs checkout" ON)
 option(OPENFE_BUILD_MAIN "Build openfe test executable" ON)
-set(OPENFE_BPDPVS_GIT_REPOSITORY "https://github.com/acarreo/bp-dpvs.git" CACHE STRING "bp-dpvs git repository used when local checkout is unavailable")
-set(OPENFE_BPDPVS_GIT_TAG "main" CACHE STRING "bp-dpvs git tag/branch/commit used when fetching" FORCE)
+set(OPENFE_BPDPVS_GIT_REPOSITORY "https://github.com/acarreo/bp-dpvs.git" CACHE STRING "bp-dpvs git repository used when fetching")
+set(OPENFE_BPDPVS_GIT_TAG "5ff1a0f6f684473abf7fd846c43b61012e82a47c" CACHE STRING "bp-dpvs git tag/branch/commit used when fetching")
 
-if(OPENFE_USE_LOCAL_BPDPVS)
-    set(_BPDPVS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../bp-dpvs")
-    if(EXISTS "${_BPDPVS_SOURCE_DIR}/CMakeLists.txt")
-        set(TESTS OFF CACHE BOOL "" FORCE)
-        set(BENCH OFF CACHE BOOL "" FORCE)
-        set(BUILD_MAIN OFF CACHE BOOL "" FORCE)
-        set(BPDPVS_INSTALL OFF CACHE BOOL "" FORCE)
-        set(_BPDPVS_STAGED_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_deps/bp-dpvs-src")
-        file(REMOVE_RECURSE "${_BPDPVS_STAGED_SOURCE_DIR}")
-        file(COPY "${_BPDPVS_SOURCE_DIR}/" DESTINATION "${_BPDPVS_STAGED_SOURCE_DIR}")
-        openfe_patch_bpdpvs_cmake("${_BPDPVS_STAGED_SOURCE_DIR}")
-        add_subdirectory("${_BPDPVS_STAGED_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/_deps/bp-dpvs-build")
-    else()
-        message(STATUS "Local bp-dpvs not found at ${_BPDPVS_SOURCE_DIR}; fetching from ${OPENFE_BPDPVS_GIT_REPOSITORY} (${OPENFE_BPDPVS_GIT_TAG})")
-        set(TESTS OFF CACHE BOOL "" FORCE)
-        set(BENCH OFF CACHE BOOL "" FORCE)
-        set(BUILD_MAIN OFF CACHE BOOL "" FORCE)
-        set(BPDPVS_INSTALL OFF CACHE BOOL "" FORCE)
-        FetchContent_Declare(
-            bpdpvs
-            GIT_REPOSITORY ${OPENFE_BPDPVS_GIT_REPOSITORY}
-            GIT_TAG ${OPENFE_BPDPVS_GIT_TAG}
-        )
+# The bpdpvs package config does not search RELIC's usual include/relic directory.
+find_path(BPDPVS_RELIC_INCLUDE_DIR NAMES relic.h PATH_SUFFIXES relic)
+find_package(bpdpvs CONFIG QUIET)
+if(bpdpvs_FOUND)
+    message(STATUS "Using installed bp-dpvs: ${bpdpvs_DIR}")
+else()
+    message(STATUS "Installed bp-dpvs not found; fetching ${OPENFE_BPDPVS_GIT_REPOSITORY} (${OPENFE_BPDPVS_GIT_TAG})")
+    set(TESTS OFF)
+    set(BENCH OFF)
+    set(BUILD_MAIN OFF)
+    set(BPDPVS_INSTALL OFF)
+    set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+    FetchContent_Declare(
+        bpdpvs
+        GIT_REPOSITORY "${OPENFE_BPDPVS_GIT_REPOSITORY}"
+        GIT_TAG "${OPENFE_BPDPVS_GIT_TAG}"
+    )
+    FetchContent_GetProperties(bpdpvs)
+    if(NOT bpdpvs_POPULATED)
         FetchContent_Populate(bpdpvs)
         openfe_patch_bpdpvs_cmake("${bpdpvs_SOURCE_DIR}")
-        add_subdirectory("${bpdpvs_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/_deps/bp-dpvs-build")
+        add_subdirectory("${bpdpvs_SOURCE_DIR}" "${bpdpvs_BINARY_DIR}")
     endif()
-else()
-    find_package(bpdpvs CONFIG REQUIRED)
 endif()
 
 add_subdirectory(include)
@@ -99,14 +92,16 @@ target_include_directories(openfe
 
 target_link_libraries(openfe PUBLIC BPDPVS::bpdpvs)
 
-option(OPENFE_BUILD_BENCH "Build benchmarks" ON)
+option(OPENFE_BUILD_BENCH "Build benchmarks" OFF)
 if(OPENFE_BUILD_MAIN)
     add_executable(openfe_main main.cpp)
     target_link_libraries(openfe_main PRIVATE OPENFE::openfe)
 endif()
 
-enable_testing()
-add_subdirectory(tests)
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 if(OPENFE_BUILD_BENCH)
     add_subdirectory(bench)
